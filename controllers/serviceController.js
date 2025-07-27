@@ -3,7 +3,7 @@ const pool = require("../db"); // your Postgres connection
 
 exports.createService = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description, category, price } = req.body; // ✅ price bhi liya
 
     let imageUrl = null;
 
@@ -14,8 +14,8 @@ exports.createService = async (req, res) => {
     }
 
     const dbRes = await pool.query(
-      "INSERT INTO services (title, description, image_url, category) VALUES ($1, $2, $3, $4) RETURNING *",
-      [title, description, imageUrl, category]
+      "INSERT INTO services (title, description, image_url, category, price) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [title, description, imageUrl, category, price] // ✅ price bhi bheja
     );
 
     res.status(201).json({ message: "Service created", service: dbRes.rows[0] });
@@ -23,6 +23,7 @@ exports.createService = async (req, res) => {
     res.status(500).json({ message: "Error creating service", error: err.message });
   }
 };
+
 
 
 // Client view services
