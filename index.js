@@ -9,7 +9,7 @@ app.use(express.json());
 
 // Add CORS middleware BEFORE other middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:8080','http://localhost:8081','http://localhost:8082');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
