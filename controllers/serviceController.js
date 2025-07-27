@@ -1,16 +1,17 @@
 const cloudinary = require("../utils/cloudinary");
 const pool = require("../db"); // your Postgres connection
 
-// Add new service by admin
 exports.createService = async (req, res) => {
   try {
     const { title, description, category } = req.body;
 
-    if (!req.file) return res.status(400).json({ message: "Image required" });
+    let imageUrl = null;
 
-    const result = await cloudinary.uploader.upload(req.file.path);
-
-    const imageUrl = result.secure_url;
+    // Image upload karein agar file mili ho
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = result.secure_url;
+    }
 
     const dbRes = await pool.query(
       "INSERT INTO services (title, description, image_url, category) VALUES ($1, $2, $3, $4) RETURNING *",
@@ -22,6 +23,7 @@ exports.createService = async (req, res) => {
     res.status(500).json({ message: "Error creating service", error: err.message });
   }
 };
+
 
 // Client view services
 exports.getServices = async (req, res) => {
