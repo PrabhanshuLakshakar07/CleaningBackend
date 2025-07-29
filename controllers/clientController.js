@@ -3,14 +3,15 @@ const pool = require("../db");
 exports.createBooking = async (req, res) => {
   const clientId = req.user.id;
   const { service_type, date, time_slot } = req.body;
+  const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
 
   try {
-    const result = await pool.query(
-      `INSERT INTO bookings (client_id, service_type, date, time_slot)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [clientId, service_type, date, time_slot]
-    );
-
+   const result = await pool.query(
+  `INSERT INTO bookings (client_id, service_type, date, time_slot, otp)
+   VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+  [clientId, service_type, date, time_slot, otp]
+);
     res.status(201).json({
       message: "Booking created successfully",
       booking: result.rows[0],
