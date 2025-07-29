@@ -37,3 +37,51 @@ exports.acceptJob = async (req, res) => {
     res.status(500).json({ message: "Error accepting job", error: err.message });
   }
 };
+// GET /api/cleaner/bookings?status=pending
+exports.getAssignedBookings = async (req, res) => {
+  const cleanerId = req.user.id;
+  const { status } = req.query;
+
+  try {
+    let query = `SELECT * FROM bookings WHERE cleaner_id = $1`;
+    const values = [cleanerId];
+
+    if (status) {
+      query += ` AND status = $2`;
+      values.push(status);
+    }
+
+    query += ` ORDER BY date DESC`;
+
+    const result = await pool.query(query, values);
+    res.status(200).json({ bookings: result.rows });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching bookings", error: err.message });
+  }
+};
+
+// PUT /api/cleaner/bookings/:id/status
+exports.updateBookingStatus = async (req, res) => {
+  const cleanerId = req.user.id;
+  const bookingId = req.params.id;
+  const { status } = req.body;
+
+  if (!["accepted", "rejected", "completed"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  try {
+    const check = await pool.query("SELECT * FROM bookings WHERE id = $1 AND cleaner_id = $2", [
+      bookingId,
+      cleanerId,
+    ]);
+    if (check.rows.length === 0) {
+      return res.status(403).json({ message: "Unauthorized or booking not found" });
+    }
+
+    await pool.query("UPDATE bookings SET status = $1 WHERE id = $2", [status, bookingId]);
+    res.status(200).json({ message: `Booking marked as ${status}` });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating status", error: err.message });
+  }
+};
