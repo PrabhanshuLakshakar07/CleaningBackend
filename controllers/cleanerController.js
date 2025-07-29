@@ -29,7 +29,8 @@ exports.acceptJob = async (req, res) => {
     }
 
     // Assign cleaner
-    await pool.query("UPDATE bookings SET cleaner_id = $1 WHERE id = $2", [cleanerId, jobId]);
+   await pool.query("UPDATE bookings SET cleaner_id = $1, status = 'assigned' WHERE id = $2", [cleanerId, jobId]);
+
 
     res.status(200).json({ message: "Job accepted successfully" });
   } catch (err) {
