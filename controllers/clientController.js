@@ -54,7 +54,6 @@ exports.cancelBooking = async (req, res) => {
   const bookingId = req.params.id;
 
   try {
-    // Optional: check booking belongs to user
     const check = await pool.query("SELECT * FROM bookings WHERE id = $1 AND client_id = $2", [
       bookingId,
       clientId,
@@ -63,9 +62,15 @@ exports.cancelBooking = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized or booking not found" });
     }
 
-    await pool.query("DELETE FROM bookings WHERE id = $1", [bookingId]);
+    // ✅ Change this line
+    await pool.query(
+      "UPDATE bookings SET status = 'cancelled' WHERE id = $1 AND client_id = $2",
+      [bookingId, clientId]
+    );
+
     res.status(200).json({ message: "Booking cancelled successfully" });
   } catch (err) {
     res.status(500).json({ message: "Error cancelling booking", error: err.message });
   }
 };
+
