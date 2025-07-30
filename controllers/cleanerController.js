@@ -64,19 +64,29 @@ exports.getAssignedBookings = async (req, res) => {
 exports.updateBookingStatus = async (req, res) => {
   const cleanerId = req.user.id;
   const bookingId = req.params.id;
-  const { status } = req.body;
+  const { status, otp } = req.body; // include OTP in body
 
   if (!["accepted", "rejected", "completed"].includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
   }
 
   try {
-    const check = await pool.query("SELECT * FROM bookings WHERE id = $1 AND cleaner_id = $2", [
-      bookingId,
-      cleanerId,
-    ]);
+    const check = await pool.query(
+      "SELECT * FROM bookings WHERE id = $1 AND cleaner_id = $2",
+      [bookingId, cleanerId]
+    );
+
     if (check.rows.length === 0) {
       return res.status(403).json({ message: "Unauthorized or booking not found" });
+    }
+
+    const booking = check.rows[0];
+
+    // ✅ OTP verification required for "completed"
+    if (status === "completed") {
+      if (!otp || otp !== booking.otp) {
+        return res.status(400).json({ message: "Invalid or missing OTP" });
+      }
     }
 
     await pool.query("UPDATE bookings SET status = $1 WHERE id = $2", [status, bookingId]);
@@ -85,3 +95,4 @@ exports.updateBookingStatus = async (req, res) => {
     res.status(500).json({ message: "Error updating status", error: err.message });
   }
 };
+
